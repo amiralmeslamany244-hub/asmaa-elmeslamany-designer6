@@ -423,6 +423,13 @@ html.dark footer{background:#08080a;border-top:1px solid var(--line)}
 .foot-acc ul{padding:6px 0 14px}
 .foot-acc > ul{display:flex;flex-direction:column;gap:10px;animation:footAccIn .25s ease}
 @keyframes footAccIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+/* Dark mode adjustments for footer accordion */
+html.dark .foot h4{color:#f5efe2}
+html.dark .foot-acc{border-bottom-color:rgba(255,255,255,.1)}
+html.dark .foot-acc > summary::after{color:var(--gold)}
+html.dark .foot a{color:rgba(245,239,226,.65)}
+html.dark .foot a:hover{color:var(--gold)}
+html.dark .foot p{color:rgba(245,239,226,.65)}
 .socials{display:flex;gap:10px;margin-top:18px}
 .socials a{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:rgba(255,255,255,.8);font-size:14px;transition:.25s}
 .socials a:hover{background:var(--gold);border-color:var(--gold);color:#fff;transform:translateY(-2px)}
@@ -1333,6 +1340,21 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
     </div>
   </div>
 </footer>
+<script>
+  // فتح/إغلاق أعمدة الفوتر تلقائياً حسب حجم الشاشة
+  (function(){
+    var accs = document.querySelectorAll('.foot-acc');
+    function sync(){
+      var isMobile = window.matchMedia('(max-width:560px)').matches;
+      accs.forEach(function(d){
+        if(isMobile){ d.removeAttribute('open'); }
+        else { d.setAttribute('open',''); }
+      });
+    }
+    sync();
+    window.addEventListener('resize', sync);
+  })();
+</script>
 
 
 <!-- ============ SIZE GUIDE MODAL ============ -->
