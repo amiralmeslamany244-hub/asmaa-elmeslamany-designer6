@@ -1019,7 +1019,7 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
     </a>
     <nav class="nav-links" aria-label="Primary">
       <a href="#shop" data-i18n="nav.shop">Shop</a>
-      <a href="#categories" data-i18n="nav.collections">Collections</a>
+      <a href="#shop" data-i18n="nav.collections">Collections</a>
       <a href="#new" data-i18n="nav.new">New In</a>
       <a href="#story" data-i18n="nav.story">Story</a>
       <a href="#journal" data-i18n="nav.journal">Journal</a>
@@ -4495,9 +4495,29 @@ console.log('[Firebase] Realtime DB connected →', firebaseConfig.databaseURL);
     var aside = document.querySelector('aside.menu, aside#sideMenu, aside.side, aside');
     if(aside && aside.classList) aside.classList.remove('open');
     document.body.classList.remove('menu-open');
-    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+    if(activeId){
+      window.scrollTo({top:0, behavior:'auto'});
+    } else if(hash && hash.length>1){
+      requestAnimationFrame(function(){
+        try{
+          var t = document.querySelector(hash);
+          if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+        }catch(_){}
+      });
+    }
   }
   window.addEventListener('hashchange', applyRoute);
+  // Handle clicks on links pointing to the current hash (no hashchange fires)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if(!a) return;
+    var href = a.getAttribute('href');
+    if(!href || href==='#' || href.length<2) return;
+    if(location.hash === href){
+      e.preventDefault();
+      applyRoute();
+    }
+  });
   document.addEventListener('DOMContentLoaded', applyRoute);
 })();
 </script>
