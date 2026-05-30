@@ -404,12 +404,30 @@ footer{background:var(--accent);color:var(--bg);padding:80px 0 30px;margin-top:6
 html.dark footer{background:#08080a;border-top:1px solid var(--line)}
 .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:50px}
 @media(max-width:900px){.foot-grid{grid-template-columns:1fr 1fr;gap:30px}}
-@media(max-width:560px){.foot-grid{grid-template-columns:1fr}}
+@media(max-width:560px){
+  .foot-grid{grid-template-columns:1fr 1fr 1fr;gap:14px}
+  .foot-grid > .foot:first-child{grid-column:1 / -1;margin-bottom:6px}
+}
 .foot h4{font-family:var(--serif);font-size:16px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:20px;color:var(--bg)}
 .foot ul{list-style:none;display:flex;flex-direction:column;gap:10px}
 .foot a{font-size:13px;color:rgba(255,255,255,.6);transition:.25s}
 .foot a:hover{color:var(--gold)}
 .foot p{font-size:13px;color:rgba(255,255,255,.6);margin-top:14px;line-height:1.7}
+/* Footer accordion (mobile collapsible columns) */
+.foot-acc{border-bottom:1px solid rgba(255,255,255,.08)}
+.foot-acc > summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0}
+.foot-acc > summary::-webkit-details-marker{display:none}
+.foot-acc > summary h4{margin-bottom:0;font-size:13px;letter-spacing:.14em}
+.foot-acc > summary::after{content:"+";color:var(--gold);font-size:20px;line-height:1;transition:transform .25s}
+.foot-acc[open] > summary::after{content:"\2212"}
+.foot-acc ul{padding:6px 0 14px}
+@media(min-width:561px){
+  .foot-acc{border-bottom:none}
+  .foot-acc > summary{pointer-events:none;cursor:default;padding:0;display:block}
+  .foot-acc > summary::after{display:none}
+  .foot-acc > summary h4{margin-bottom:20px;font-size:16px;letter-spacing:.16em}
+  .foot-acc > ul{display:flex !important;flex-direction:column;padding:0}
+}
 .socials{display:flex;gap:10px;margin-top:18px}
 .socials a{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:rgba(255,255,255,.8);font-size:14px;transition:.25s}
 .socials a:hover{background:var(--gold);border-color:var(--gold);color:#fff;transform:translateY(-2px)}
@@ -583,7 +601,28 @@ html[dir="rtl"] .toast{right:auto;left:24px;transform:translateX(-120%);border-l
 @keyframes pmIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
 .section-sub{max-width:620px;margin:14px auto 0;color:var(--text-2);font-size:15px;line-height:1.8}
 .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
-@media(max-width:880px){.blog-grid{grid-template-columns:1fr}}
+@media(max-width:880px){
+  .blog-grid{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0;
+    padding:0;
+    overflow:visible;
+  }
+  .blog-grid > *{
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+  }
+  .blog-grid > * + *{
+    margin-top:22px;
+    padding-top:22px;
+    border-top:1px solid color-mix(in oklab, var(--gold) 22%, var(--line));
+  }
+  .blog-grid .post{width:100%}
+  .blog-grid .post-media img{aspect-ratio:4/3}
+}
 .post{position:relative;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);transition:.45s var(--ease);display:flex;flex-direction:column}
 .post:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:color-mix(in oklab,var(--gold) 40%,var(--line))}
 .post-media{position:relative;overflow:hidden;background:var(--surface-2)}
@@ -1272,28 +1311,28 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
           <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
         </div>
       </div>
-      <div class="foot">
-        <h4 data-i18n="foot.shop">Shop</h4>
+      <details class="foot foot-acc">
+        <summary><h4 data-i18n="foot.shop">Shop</h4></summary>
         <ul>
           <li><a href="#shop" data-i18n="foot.dresses">Dresses</a></li><li><a href="#shop" data-i18n="foot.abayas">Abayas</a></li><li><a href="#shop" data-i18n="foot.hijabs">Hijabs</a></li>
           <li><a href="#shop" data-i18n="foot.bags">Bags</a></li><li><a href="#shop" data-i18n="foot.shoes">Shoes</a></li><li><a href="#shop" data-i18n="foot.accessories">Accessories</a></li>
         </ul>
-      </div>
-      <div class="foot">
-        <h4 data-i18n="foot.help">Help</h4>
+      </details>
+      <details class="foot foot-acc">
+        <summary><h4 data-i18n="foot.help">Help</h4></summary>
         <ul>
           <li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.shipping">Shipping & delivery</a></li><li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.returns">Return policy</a></li><li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.sizeguide">Size guide</a></li>
           <li><a href="#" data-i18n="foot.care">Garment care</a></li><li><a href="#faq" data-i18n="foot.faq">FAQs</a></li><li><a href="#contact" data-i18n="foot.contactus">Contact us</a></li>
         </ul>
-      </div>
-      <div class="foot">
-        <h4 data-i18n="foot.house">The House</h4>
+      </details>
+      <details class="foot foot-acc">
+        <summary><h4 data-i18n="foot.house">The House</h4></summary>
         <ul>
           <li><a href="#story" data-i18n="foot.ourstory">Our story</a></li><li><a href="#journal" data-i18n="foot.journal">Journal</a></li>
           <li><a href="#" data-i18n="foot.sustain">Sustainability</a></li><li><a href="#" data-i18n="foot.careers">Careers</a></li>
           <li><a href="#" data-i18n="foot.press">Press</a></li><li><a href="#" data-i18n="foot.boutiques">Boutiques</a></li>
         </ul>
-      </div>
+      </details>
     </div>
     <div class="copy">
       <span>© 2026 Asmaa Elmeslamany. <span data-i18n="foot.rights">All rights reserved.</span></span>
