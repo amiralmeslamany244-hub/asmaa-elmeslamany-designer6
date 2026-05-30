@@ -353,7 +353,13 @@ html[dir="rtl"] .review p{font-family:var(--arabic);font-style:normal}
 
 /* ===== Newsletter ===== */
 .news{background:linear-gradient(135deg,var(--accent),#2a2a30);color:var(--bg);text-align:center;padding:90px 24px;border-radius:var(--radius-lg);margin:60px auto;max-width:calc(var(--container) - 48px)}
-html.dark .news{background:linear-gradient(135deg,#1a1a20,#0e0e12);border:1px solid var(--line)}
+html.dark .news{background:linear-gradient(135deg,#1a1a20,#0e0e12);border:1px solid var(--line);color:#f4ead5}
+html.dark .news h2{color:#fff}
+html.dark .news p{color:rgba(244,234,213,.78);opacity:1}
+html.dark .news-form{background:rgba(255,255,255,.04);border-color:rgba(201,168,76,.35)}
+html.dark .news-form input{color:#fff}
+html.dark .news-form input::placeholder{color:rgba(255,255,255,.55)}
+html.dark .news-form button{background:var(--gold);color:#1a1a1a}
 .news h2{color:inherit;font-size:clamp(28px,4vw,46px)}
 .news p{opacity:.7;margin:12px auto 28px;max-width:480px}
 .news-form{display:flex;gap:8px;max-width:480px;margin:0 auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);padding:6px;border-radius:999px;backdrop-filter:blur(10px)}
@@ -420,7 +426,7 @@ html[dir="rtl"] .wa,html[dir="rtl"] .totop{right:auto;left:24px}
 /* ===== Drawer (cart / wishlist / menu) ===== */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;opacity:0;visibility:hidden;transition:.3s;backdrop-filter:blur(4px)}
 .overlay.show{opacity:1;visibility:visible}
-.drawer{position:fixed;top:0;right:0;height:100%;width:420px;max-width:92vw;background:var(--bg);z-index:201;transform:translateX(100%);transition:transform .4s var(--ease);display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.drawer{position:fixed;top:0;right:0;height:100%;height:100dvh;width:420px;max-width:92vw;background:var(--bg);z-index:201;transform:translateX(100%);transition:transform .4s var(--ease);display:flex;flex-direction:column;box-shadow:var(--shadow-lg);overflow:hidden;overscroll-behavior:contain}
 html[dir="rtl"] .drawer{right:auto;left:0;transform:translateX(-100%)}
 .drawer.show,html[dir="rtl"] .drawer.show{transform:translateX(0)}
 .drawer-head{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
@@ -440,8 +446,34 @@ html[dir="rtl"] .drawer{right:auto;left:0;transform:translateX(-100%)}
 .cart-total{display:flex;justify-content:space-between;font-family:var(--serif);font-size:22px;margin-bottom:16px}
 .cart-empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .cart-empty i{font-size:48px;color:var(--gold);margin-bottom:16px}
-.mobile-menu{padding:30px 24px;display:flex;flex-direction:column;gap:6px}
+.mobile-menu{padding:30px 24px 60px;display:flex;flex-direction:column;gap:6px;flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;min-height:0;touch-action:pan-y;scrollbar-width:thin;scrollbar-color:var(--gold) transparent;position:relative;scroll-behavior:smooth}
+.mobile-menu::-webkit-scrollbar{width:6px}
+.mobile-menu::-webkit-scrollbar-track{background:transparent}
+.mobile-menu::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--gold),#8a6a25);border-radius:999px}
+.mobile-menu::-webkit-scrollbar-thumb:hover{background:var(--gold)}
+/* Scroll hint chip */
+.scroll-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:var(--bg);border:1px solid var(--gold);color:var(--gold);font-size:12px;font-family:var(--serif);letter-spacing:.04em;box-shadow:var(--shadow-sm);opacity:0;visibility:hidden;transition:opacity .35s var(--ease),transform .35s var(--ease);pointer-events:none;z-index:5}
+.scroll-hint.show{opacity:1;visibility:visible;animation:hintBounce 1.6s ease-in-out infinite}
+.scroll-hint i{font-size:13px}
+@keyframes hintBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(4px)}}
+/* Fade mask at bottom of scroll area to imply more content */
+.drawer .scroll-fade{position:absolute;left:0;right:0;bottom:0;height:48px;background:linear-gradient(to top,var(--bg) 10%,transparent);pointer-events:none;opacity:0;transition:opacity .25s var(--ease);z-index:4}
+.drawer .scroll-fade.show{opacity:1}
 .mobile-menu a{padding:14px 0;font-family:var(--serif);font-size:22px;border-bottom:1px solid var(--line)}
+.menu-group{border-bottom:1px solid var(--line)}
+.menu-group-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 0;font-family:var(--serif);font-size:22px;color:var(--text);background:none;border:0;cursor:pointer;text-align:inherit}
+html[dir="rtl"] .menu-group-toggle{text-align:right}
+.menu-chev{font-size:14px;transition:transform .35s var(--ease);color:var(--gold);flex-shrink:0}
+.menu-group.open .menu-chev{transform:rotate(180deg)}
+.menu-group-body{max-height:0;overflow:hidden;transition:max-height .45s var(--ease),padding .3s var(--ease);display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:0}
+.menu-group.open .menu-group-body{max-height:1200px;padding:6px 0 18px}
+.menu-cat{display:flex;flex-direction:column;align-items:stretch;gap:0;padding:0;font-family:var(--serif);font-size:14px;color:var(--text);cursor:pointer;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface);transition:transform .3s var(--ease),border-color .3s var(--ease),box-shadow .3s var(--ease);position:relative}
+.menu-cat:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:var(--shadow-sm)}
+.menu-cat img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;transition:transform .5s var(--ease)}
+.menu-cat:hover img{transform:scale(1.06)}
+.menu-cat span{padding:10px 12px;text-align:center;letter-spacing:.02em;border-top:1px solid var(--line);background:var(--bg)}
+@media(min-width:520px){.menu-group-body{grid-template-columns:repeat(3,1fr);gap:12px}}
+@media(max-width:360px){.menu-group-body{grid-template-columns:repeat(2,1fr);gap:8px}.menu-cat span{font-size:13px;padding:8px 6px}}
 
 /* ===== Modal (Quick view / Checkout / Admin) ===== */
 .modal{position:fixed;inset:0;z-index:300;display:grid;place-items:center;padding:20px;opacity:0;visibility:hidden;transition:.3s;background:rgba(0,0,0,.6);backdrop-filter:blur(6px)}
@@ -994,17 +1026,7 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
   </div>
 </div>
 
-<!-- ============ CATEGORIES ============ -->
-<section id="categories">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="cat.eye">Shop by category</span>
-      <h2 data-i18n="cat.title">The Collections</h2>
-      <p data-i18n="cat.sub">Six edits, each refined to a single feeling — softness, structure, ceremony.</p>
-    </div>
-    <div class="cats reveal" id="catGrid"></div>
-  </div>
-</section>
+<!-- Categories section moved to side menu -->
 
 <!-- ============ FEATURED / SHOP ============ -->
 <section id="shop">
@@ -1117,12 +1139,23 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
 <section class="reviews" id="reviews">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="rev.eye">Client diary</span>
-      <h2 data-i18n="rev.title">Words from our clients</h2>
+      <span class="eyebrow" data-i18n="rev.eye">مذكرات العميلات</span>
+      <h2 data-i18n="rev.title">كلمات من عميلاتنا</h2>
     </div>
     <div class="review-track reveal" id="reviewTrack"></div>
+    <p id="reviewEmpty" class="review-empty reveal" style="text-align:center;color:var(--muted);margin:24px 0">كوني أول من يشارك تجربتها معنا ✨</p>
+
+    <form id="reviewForm" class="review-form reveal" style="max-width:680px;margin:32px auto 0;display:grid;gap:12px;background:var(--surface);padding:24px;border-radius:16px;border:1px solid var(--line)">
+      <h3 style="margin:0 0 4px;font-size:18px">شاركينا رأيك</h3>
+      <input id="rvName" type="text" placeholder="الاسم" required maxlength="60" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit"/>
+      <input id="rvTitle" type="text" placeholder="المدينة أو الصفة (اختياري)" maxlength="80" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit"/>
+      <textarea id="rvText" placeholder="رأيك عن تجربتك معنا..." required maxlength="500" rows="4" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit;resize:vertical"></textarea>
+      <button type="submit" class="btn btn-primary" style="justify-self:start">إرسال الرأي</button>
+      <small style="color:var(--muted)">يُنشر رأيك فور إرساله على متصفحك. للنشر الرسمي على الموقع للجميع، يحتاج لربط قاعدة بيانات.</small>
+    </form>
   </div>
 </section>
+
 
 <!-- ============ INSTAGRAM ============ -->
 <section>
@@ -1147,12 +1180,13 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
   </div>
 </section>
 
-<!-- ============ ABOUT / STORY ============ -->
-<section id="story">
-  <div class="container split">
+<!-- ============ ABOUT / STORY (standalone view via #story) ============ -->
+<section id="story" class="story-page" hidden>
+  <div class="container split" style="padding-top:40px">
     <div class="reveal">
+      <a href="#" class="btn btn-ghost" style="margin-bottom:24px"><i class="fa-solid fa-arrow-right"></i> <span data-i18n="nav.shop">Shop</span></a>
       <span class="eyebrow" data-i18n="about.eye">Our story</span>
-      <h2 style="font-size:clamp(32px,4.5vw,52px);margin:14px 0 20px" data-i18n="about.title">A house built on quiet luxury.</h2>
+      <h1 style="font-size:clamp(32px,4.5vw,52px);margin:14px 0 20px" data-i18n="about.title">A house built on quiet luxury.</h1>
       <p style="color:var(--text-2);font-size:16px;margin-bottom:14px" data-i18n="about.p1">Founded in 2014 by Asmaa Elmeslamany, the house began as a private atelier dressing brides and women of presence across the Gulf.</p>
       <p style="color:var(--text-2);font-size:16px;margin-bottom:24px" data-i18n="about.p2">Today, our pieces travel from Riyadh to Paris — a testament to the universal language of refined, modest elegance.</p>
       <div class="story-stats">
@@ -1162,7 +1196,7 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
       </div>
     </div>
     <div class="reveal">
-      <div class="hanger-rack" id="hangerRack" role="list" aria-label="Hanging products"></div>
+      <div class="hanger-rack" id="hangerRackStory" role="list" aria-label="Hanging products"></div>
     </div>
   </div>
 </section>
@@ -1178,20 +1212,11 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
   </form>
 </div>
 
-<!-- ============ FAQ ============ -->
-<section id="faq">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="faq.eye">Help</span>
-      <h2 data-i18n="faq.title">Frequently asked</h2>
-    </div>
-    <div class="faq reveal" id="faqList"></div>
-  </div>
-</section>
 
-<!-- ============ CONTACT ============ -->
-<section id="contact" style="background:var(--surface-2)">
+<!-- ============ CONTACT (standalone view via #contact) ============ -->
+<section id="contact" class="contact-page" hidden style="background:var(--surface-2)">
   <div class="container">
+    <a href="#" class="btn btn-ghost" style="margin-bottom:24px"><i class="fa-solid fa-arrow-right"></i> <span data-i18n="nav.shop">Shop</span></a>
     <div class="section-head reveal">
       <span class="eyebrow" data-i18n="ct.eye">Contact</span>
       <h2 data-i18n="ct.title">We'd love to hear from you</h2>
@@ -1214,6 +1239,19 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
         <button class="btn btn-primary" type="submit" style="align-self:flex-start" data-i18n="ct.send">Send message <i class="fa-solid fa-paper-plane"></i></button>
       </form>
     </div>
+  </div>
+</section>
+
+
+<!-- ============ FAQ ============ -->
+<section id="faq" hidden style="background:var(--surface-2);padding:80px 0">
+  <div class="container">
+    <div class="section-head reveal">
+      <a href="#story" class="btn btn-ghost" style="margin-bottom:24px;display:inline-flex;"><i class="fas fa-arrow-right" style="transform:rotate(180deg)"></i> <span data-i18n="faq.back">الرجوع للرئيسية</span></a>
+      <span class="eyebrow" data-i18n="faq.eye">Help</span>
+      <h2 data-i18n="faq.title">Frequently asked</h2>
+    </div>
+    <div class="faq reveal" id="faqList"></div>
   </div>
 </section>
 
@@ -1377,11 +1415,20 @@ window.openSizeGuide = function(prodOrId){
 
 <aside class="drawer" id="menuDrawer" aria-label="Menu">
   <div class="drawer-head"><h3 data-i18n="menu.title">القائمة</h3><button class="icon-btn" data-close><i class="fa-solid fa-xmark"></i></button></div>
-  <div class="mobile-menu">
-    <a href="#shop" data-close data-i18n="nav.shop">Shop</a><a href="#categories" data-close data-i18n="nav.collections">Collections</a>
+  <div class="mobile-menu" id="menuScroll">
+    <a href="#shop" data-close data-i18n="nav.shop">Shop</a>
+    <div class="menu-group" id="menuCollections">
+      <button type="button" class="menu-group-toggle" aria-expanded="false">
+        <span data-i18n="nav.collections">Collections</span>
+        <i class="fa-solid fa-chevron-down menu-chev"></i>
+      </button>
+      <div class="menu-group-body" id="menuCatList"></div>
+    </div>
     <a href="#new" data-close data-i18n="nav.new">New In</a><a href="#story" data-close data-i18n="nav.story">Story</a>
     <a href="#journal" data-close data-i18n="nav.journal">Journal</a><a href="#contact" data-close data-i18n="nav.contact">Contact</a>
   </div>
+  <div class="scroll-fade" id="menuFade"></div>
+  <div class="scroll-hint" id="menuHint"><i class="fa-solid fa-chevron-down"></i><span>اسحبي للأسفل</span></div>
 </aside>
 
 <!-- ============ MODALS ============ -->
@@ -1430,7 +1477,7 @@ const I18N = {
     "about.p2":"Today, our pieces travel from Riyadh to Paris — a testament to the universal language of refined, modest elegance.",
     "about.s1":"Years of craft","about.s2":"Clients dressed","about.s3":"Handcrafted",
     "news.eye":"Private list","news.title":"Join the inner circle","news.sub":"Early access to drops, private sales, and styling notes from Asmaa.","news.cta":"Subscribe",
-    "faq.eye":"Help","faq.title":"Frequently asked",
+    "faq.eye":"Help","faq.title":"Frequently asked","faq.back":"Back to Home",
     "ct.eye":"Contact","ct.title":"We'd love to hear from you","ct.addr":"Atelier","ct.phone":"Phone","ct.hours":"Hours","ct.name":"Name","ct.subj":"Subject","ct.msg":"Message","ct.send":"Send message",
     "foot.about":"A luxury fashion house for the modern, refined woman. Handcrafted in limited editions since 2014.","foot.shop":"Shop","foot.help":"Help","foot.house":"The House","foot.rights":"All rights reserved.",
     "cart.title":"Shopping Bag","wish.title":"Wishlist",
@@ -1474,7 +1521,7 @@ const I18N = {
     "about.p2":"اليوم، تسافر قطعنا من الرياض إلى باريس — شاهداً على لغة عالمية واحدة للأناقة المحتشمة الراقية.",
     "about.s1":"سنوات من الصنعة","about.s2":"عميلة كسوناها","about.s3":"يدوي بالكامل",
     "news.eye":"القائمة الخاصة","news.title":"انضمي إلى الدائرة المقربة","news.sub":"وصول مبكر للإطلاقات، تخفيضات خاصة، وملاحظات تنسيق من أسماء.","news.cta":"اشتراك",
-    "faq.eye":"المساعدة","faq.title":"الأسئلة الشائعة",
+    "faq.eye":"المساعدة","faq.title":"الأسئلة الشائعة","faq.back":"الرجوع للرئيسية",
     "ct.eye":"تواصل","ct.title":"يسعدنا أن نسمع منكِ","ct.addr":"الأتيليه","ct.phone":"الهاتف","ct.hours":"ساعات العمل","ct.name":"الاسم","ct.subj":"الموضوع","ct.msg":"الرسالة","ct.send":"إرسال الرسالة",
     "foot.about":"دار أزياء فاخرة للمرأة العصرية الراقية. مصنوع يدوياً بإصدارات محدودة منذ 2014.","foot.shop":"المتجر","foot.help":"المساعدة","foot.house":"الدار","foot.rights":"جميع الحقوق محفوظة.",
     "cart.title":"حقيبة التسوق","wish.title":"المفضلة",
@@ -1549,7 +1596,7 @@ const CATS = [
 ];
 const CAT_NAME = (id)=>{ const c = CATS.find(x=>x.id===id); return c ? (lang==='ar'?c.ar:c.en) : id; };
 
-const REVIEWS = [];
+const REVIEWS = JSON.parse(localStorage.getItem('ae_reviews') || '[]');
 
 
 const BLOG = [
@@ -1665,17 +1712,19 @@ function renderProducts(){
 }
 
 function renderCategories(){
-  $('#catGrid').innerHTML = CATS.map(c=>`
-    <div class="cat" data-catfilter="${c.id}" data-cat-slot="${c.id}">
-      <img src="${IMG(c.img,600)}" alt="${c.en}" loading="lazy" />
-      <div class="cat-label"><span>${lang==='ar'?c.ar:c.en}</span><i class="fa-solid fa-arrow-right"></i></div>
+  const host = $('#menuCatList'); if(!host) return;
+  host.innerHTML = CATS.map(c=>`
+    <div class="menu-cat" data-catfilter="${c.id}" data-cat-slot="${c.id}">
+      <img src="${IMG(c.img,200)}" alt="${c.en}" loading="lazy" />
+      <span>${lang==='ar'?c.ar:c.en}</span>
     </div>`).join('');
-  $$('.cat').forEach(el=>el.addEventListener('click',(ev)=>{
+  host.querySelectorAll('.menu-cat').forEach(el=>el.addEventListener('click',(ev)=>{
     if(ev.target.closest('.cat-edit-btn')) return;
     currentFilter = el.dataset.catfilter;
     $$('#filterChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.f===currentFilter));
     renderProducts();
-    $('#shop').scrollIntoView({behavior:'smooth'});
+    toggleDrawer('menuDrawer',false);
+    setTimeout(()=>$('#shop').scrollIntoView({behavior:'smooth'}),200);
   }));
   if(window.__applyCatImages) window.__applyCatImages();
   if(window.__injectCatButtons) window.__injectCatButtons();
@@ -1694,10 +1743,33 @@ function renderFilters(){
 function renderBest(){$('#bestGrid').innerHTML = PRODUCTS.filter(p=>p.best).slice(0,4).map(productCard).join('');observeReveal($('#bestGrid'))}
 function renderNew(){ $('#newGrid').innerHTML  = PRODUCTS.filter(p=>p.new).slice(0,4).map(productCard).join(''); observeReveal($('#newGrid'))}
 function renderReviews(){
-  const sec = document.getElementById('reviews');
-  if(!REVIEWS || REVIEWS.length===0){ if(sec) sec.style.display='none'; return; }
-  if(sec) sec.style.display='';
-  $('#reviewTrack').innerHTML = REVIEWS.map(r=>`<div class="review"><div class="stars">${star(5)}</div><p>"${r.p}"</p><div class="review-author"><img src="${IMG(r.img,120)}" alt="${r.n}" loading="lazy"/><div><strong>${r.n}</strong><span>${r.t}</span></div></div></div>`).join('');
+  const sec = document.getElementById('reviews'); if(!sec) return;
+  sec.style.display='';
+  const track = document.getElementById('reviewTrack');
+  const empty = document.getElementById('reviewEmpty');
+  if(!REVIEWS || REVIEWS.length===0){
+    if(track) track.innerHTML='';
+    if(empty) empty.style.display='';
+  } else {
+    if(empty) empty.style.display='none';
+    if(track) track.innerHTML = REVIEWS.map(r=>`<div class="review"><div class="stars">${star(5)}</div><p>"${r.p}"</p><div class="review-author"><div class="rv-avatar" style="width:44px;height:44px;border-radius:50%;background:var(--gold,#c9a84c);color:#0b0b0d;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-family:Georgia,serif">${(r.n||'?').trim().charAt(0)}</div><div><strong>${r.n}</strong><span>${r.t||''}</span></div></div></div>`).join('');
+  }
+  const form = document.getElementById('reviewForm');
+  if(form && !form.dataset.bound){
+    form.dataset.bound='1';
+    form.addEventListener('submit', e=>{
+      e.preventDefault();
+      const n = document.getElementById('rvName').value.trim();
+      const t = document.getElementById('rvTitle').value.trim();
+      const p = document.getElementById('rvText').value.trim();
+      if(!n || !p) return;
+      REVIEWS.unshift({n, t, p});
+      localStorage.setItem('ae_reviews', JSON.stringify(REVIEWS));
+      form.reset();
+      renderReviews();
+      try{ toast && toast('شكراً لمشاركتك رأيك ✨'); }catch(_){}
+    });
+  }
 }
 
 function renderIG(){
@@ -3379,7 +3451,11 @@ document.addEventListener('click',e=>{
 });
 $('#btnCart').addEventListener('click',()=>toggleDrawer('cartDrawer',true));
 $('#btnWish').addEventListener('click',()=>toggleDrawer('wishDrawer',true));
-$('#btnMenu').addEventListener('click',()=>toggleDrawer('menuDrawer',true));
+$('#btnMenu').addEventListener('click',()=>{toggleDrawer('menuDrawer',true);setTimeout(updateMenuScrollHint,350);});
+document.addEventListener('click',(e)=>{const t=e.target.closest('#menuCollections .menu-group-toggle');if(!t)return;const g=t.closest('.menu-group');const open=g.classList.toggle('open');t.setAttribute('aria-expanded',open?'true':'false');setTimeout(updateMenuScrollHint,500);});
+function updateMenuScrollHint(){const s=document.getElementById('menuScroll');const h=document.getElementById('menuHint');const f=document.getElementById('menuFade');if(!s||!h||!f)return;const more=s.scrollHeight-s.clientHeight-s.scrollTop>20;h.classList.toggle('show',more);f.classList.toggle('show',more);}
+document.getElementById('menuScroll')?.addEventListener('scroll',updateMenuScrollHint,{passive:true});
+window.addEventListener('resize',updateMenuScrollHint);
 $('#btnAdmin').addEventListener('click',openAdmin);
 $('#btnSearch').addEventListener('click',()=>{$('#shop').scrollIntoView({behavior:'smooth'});setTimeout(()=>$('#searchInput').focus(),600)});
 
@@ -4432,5 +4508,96 @@ console.log('[Firebase] Realtime DB connected →', firebaseConfig.databaseURL);
 </script>
 
 <div id="postModal" class="pm" aria-hidden="true"></div>
+
+<script>
+(function(){
+  function applyRoute(){
+    var hash = location.hash;
+    var pageMap = { '#story':'story', '#contact':'contact', '#faq':'faq' };
+    var activeId = pageMap[hash] || null;
+    var main = document.getElementById('main');
+    if(!main) return;
+    Array.prototype.forEach.call(main.children, function(node){
+      if(node.nodeType!==1) return;
+      if(node.id==='story' || node.id==='contact' || node.id==='faq') return;
+      node.style.display = activeId ? 'none' : '';
+    });
+    ['story','contact','faq'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(!el) return;
+      if(id===activeId){ el.removeAttribute('hidden'); el.style.display=''; }
+      else { el.setAttribute('hidden',''); }
+    });
+    var aside = document.querySelector('aside.menu, aside#sideMenu, aside.side, aside');
+    if(aside && aside.classList) aside.classList.remove('open');
+    document.body.classList.remove('menu-open');
+    window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  }
+  window.addEventListener('hashchange', applyRoute);
+  document.addEventListener('DOMContentLoaded', applyRoute);
+})();
+</script>
+
+<!-- ============ Firebase Realtime Reviews ============ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
+<script>
+(function(){
+  const firebaseConfig = {
+    apiKey: "AIzaSyDfVnHRw88cVXMmT4XWiU5_k2tPt0ddMfw",
+    authDomain: "asmaa-elmeslamany-designer.firebaseapp.com",
+    databaseURL: "https://asmaa-elmeslamany-designer-default-rtdb.firebaseio.com",
+    projectId: "asmaa-elmeslamany-designer",
+    storageBucket: "asmaa-elmeslamany-designer.firebasestorage.app",
+    messagingSenderId: "892232905343",
+    appId: "1:892232905343:web:cd4e3fcf31cd5e01ce054a",
+    measurementId: "G-YL6QG1TMT6"
+  };
+  try { firebase.initializeApp(firebaseConfig); } catch(e){ console.error('Firebase init failed', e); return; }
+  const db = firebase.database();
+  const reviewsRef = db.ref('reviews').limitToLast(50);
+
+  // Live updates from Firebase
+  reviewsRef.on('value', snap => {
+    const val = snap.val() || {};
+    const list = Object.keys(val).map(k => ({ _k:k, ...val[k] }))
+                       .sort((a,b)=> (b.ts||0) - (a.ts||0));
+    // Replace in-memory REVIEWS used by renderReviews()
+    window.REVIEWS.length = 0;
+    list.forEach(r => window.REVIEWS.push({ n:r.n, t:r.t||'', p:r.p }));
+    if (typeof renderReviews === 'function') renderReviews();
+  }, err => console.error('Firebase read error', err));
+
+  // Override the form submit to push to Firebase instead of localStorage
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('reviewForm');
+    if (!form) return;
+    // Replace node to drop the previously-bound localStorage handler
+    const clone = form.cloneNode(true);
+    form.parentNode.replaceChild(clone, form);
+    clone.dataset.bound = '1';
+    clone.addEventListener('submit', async e => {
+      e.preventDefault();
+      const n = document.getElementById('rvName').value.trim();
+      const t = document.getElementById('rvTitle').value.trim();
+      const p = document.getElementById('rvText').value.trim();
+      if (!n || !p) return;
+      const btn = clone.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.dataset._t = btn.textContent; btn.textContent = 'جاري الإرسال...'; }
+      try {
+        await db.ref('reviews').push({ n, t, p, ts: Date.now() });
+        clone.reset();
+        try { typeof toast === 'function' && toast('شكراً لمشاركتك رأيك ✨'); } catch(_){}
+      } catch(err) {
+        console.error('Firebase write error', err);
+        alert('تعذّر إرسال الرأي، حاولي مرة أخرى.');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset._t || 'إرسال الرأي'; }
+      }
+    });
+  });
+})();
+</script>
 </body>
 </html>
+
