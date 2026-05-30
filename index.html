@@ -421,13 +421,8 @@ html.dark footer{background:#08080a;border-top:1px solid var(--line)}
 .foot-acc > summary::after{content:"+";color:var(--gold);font-size:20px;line-height:1;transition:transform .25s}
 .foot-acc[open] > summary::after{content:"\2212"}
 .foot-acc ul{padding:6px 0 14px}
-@media(min-width:561px){
-  .foot-acc{border-bottom:none}
-  .foot-acc > summary{pointer-events:none;cursor:default;padding:0;display:block}
-  .foot-acc > summary::after{display:none}
-  .foot-acc > summary h4{margin-bottom:20px;font-size:16px;letter-spacing:.16em}
-  .foot-acc > ul{display:flex !important;flex-direction:column;padding:0}
-}
+.foot-acc > ul{display:flex;flex-direction:column;gap:10px;animation:footAccIn .25s ease}
+@keyframes footAccIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
 .socials{display:flex;gap:10px;margin-top:18px}
 .socials a{width:38px;height:38px;border-radius:50%;border:1px solid rgba(255,255,255,.14);display:grid;place-items:center;color:rgba(255,255,255,.8);font-size:14px;transition:.25s}
 .socials a:hover{background:var(--gold);border-color:var(--gold);color:#fff;transform:translateY(-2px)}
@@ -603,25 +598,20 @@ html[dir="rtl"] .toast{right:auto;left:24px;transform:translateX(-120%);border-l
 .blog-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-items:stretch}
 @media(max-width:880px){
   .blog-grid{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:0;
-    padding:0;
-    overflow:visible;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    align-items:stretch;
   }
-  .blog-grid > *{
-    width:100%;
-    max-width:420px;
-    margin:0 auto;
-  }
-  .blog-grid > * + *{
-    margin-top:22px;
-    padding-top:22px;
-    border-top:1px solid color-mix(in oklab, var(--gold) 22%, var(--line));
-  }
+  .blog-grid > *{width:100%;margin:0}
   .blog-grid .post{width:100%}
-  .blog-grid .post-media img{aspect-ratio:4/3}
+  .blog-grid .post-body{padding:12px 10px;gap:6px}
+  .blog-grid .post h3{font-size:14px;line-height:1.25}
+  .blog-grid .post p{font-size:11.5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .blog-grid .post-meta{font-size:9px;letter-spacing:.16em}
+  .blog-grid .post-more{font-size:10px;letter-spacing:.14em;padding-top:8px}
+  .blog-grid .post-tag{font-size:8px;padding:5px 8px;top:8px}
+  .blog-grid .post-media img{aspect-ratio:3/4}
 }
 .post{position:relative;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);transition:.45s var(--ease);display:flex;flex-direction:column}
 .post:hover{transform:translateY(-6px);box-shadow:var(--shadow);border-color:color-mix(in oklab,var(--gold) 40%,var(--line))}
