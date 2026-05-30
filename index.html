@@ -344,12 +344,20 @@ html[dir="rtl"] .review p{font-family:var(--arabic);font-style:normal}
 
 /* ===== Instagram ===== */
 .ig{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
-.ig .instagram-media{margin:0 !important;min-width:0 !important;width:100% !important;border-radius:12px !important;box-shadow:0 4px 18px rgba(0,0,0,.06) !important}
+.ig-card{position:relative;display:block;aspect-ratio:1/1;overflow:hidden;border-radius:14px;background:#111;box-shadow:0 6px 20px rgba(0,0,0,.08);text-decoration:none;color:#fff;isolation:isolate}
+.ig-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.ig-card:hover img{transform:scale(1.06)}
+.ig-card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.55) 100%);z-index:1;pointer-events:none}
+.ig-card .ig-logo{position:absolute;top:12px;right:12px;z-index:2;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);color:#fff;font-size:15px}
+.ig-card .ig-play{position:absolute;inset:0;display:grid;place-items:center;z-index:2;color:#fff;font-size:46px;text-shadow:0 4px 18px rgba(0,0,0,.55);opacity:.95;transition:transform .3s ease}
+.ig-card:hover .ig-play{transform:scale(1.12)}
+.ig-card .ig-meta{position:absolute;left:14px;right:14px;bottom:12px;z-index:2;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;letter-spacing:.3px}
+.ig-card .ig-meta i{font-size:13px}
 .ig-cta{text-align:center;margin-top:28px}
 .ig-cta a{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-weight:500;transition:.3s}
 .ig-cta a:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 @media(max-width:900px){.ig{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.ig{grid-template-columns:1fr}}
+@media(max-width:600px){.ig{grid-template-columns:repeat(2,1fr);gap:12px}}
 
 /* ===== Newsletter ===== */
 .news{background:linear-gradient(135deg,var(--accent),#2a2a30);color:var(--bg);text-align:center;padding:90px 24px;border-radius:var(--radius-lg);margin:60px auto;max-width:calc(var(--container) - 48px)}
@@ -1829,42 +1837,46 @@ function renderReviews(){
   }
 }
 
-function loadIGEmbedScript(){
-  if(window.__igScriptLoaded) return;
-  window.__igScriptLoaded = true;
-  const s = document.createElement('script');
-  s.async = true; s.src = 'https://www.instagram.com/embed.js';
-  document.body.appendChild(s);
-}
-function processIGEmbeds(){
-  if(window.instgrm && window.instgrm.Embeds){ window.instgrm.Embeds.process(); }
-  else { setTimeout(processIGEmbeds, 400); }
-}
 function renderIG(){
   const profileUrl = 'https://www.instagram.com/asmaa_elmeslmany_designer_?igsh=MXZ3dXgzMzFqeTBhNQ==';
   const grid = $('#igGrid'); if(!grid) return;
-  const DEFAULT_IG_POSTS = [
-    { link: 'https://www.instagram.com/reel/DYshUSxoVMg/' }
-  ];
-  const draw = (items)=>{
-    const saved = (items && items.length) ? items.filter(it=>it && it.link) : [];
-    const list = (saved.length ? saved : DEFAULT_IG_POSTS).slice(0,6);
-    if(!list.length){
-      grid.innerHTML = IG_IMGS.slice(0,6).map(i=>`
-        <a href="${profileUrl}" target="_blank" rel="noopener" aria-label="Instagram"
-           style="display:block;aspect-ratio:1;overflow:hidden;border-radius:12px;position:relative">
-          <img src="${IMG(i,600)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
-        </a>`).join('');
-      return;
-    }
-    grid.innerHTML = list.map(it=>`
-      <blockquote class="instagram-media" data-instgrm-permalink="${it.link}" data-instgrm-version="14"
-        style="background:#FFF;border:0;margin:0;padding:0;width:100%"></blockquote>
-    `).join('');
-    loadIGEmbedScript();
-    processIGEmbeds();
+
+  // Fallback يستخدم صور IG_IMGS لو مفيش بوستات محفوظة
+  const FALLBACK = (typeof IG_IMGS !== 'undefined' ? IG_IMGS.slice(0,6) : []).map(i=>({
+    img: (typeof IMG === 'function' ? IMG(i,800) : i),
+    link: profileUrl,
+    isReel: false
+  }));
+
+  const isReelUrl = (u='') => /\/reel\/|\/reels\//i.test(u);
+
+  const card = (it, idx)=>{
+    const link = it.link || profileUrl;
+    const fallbackImg = (typeof IMG === 'function' && typeof IG_IMGS !== 'undefined')
+      ? IMG(IG_IMGS[idx % IG_IMGS.length], 800) : '';
+    const img  = it.img || fallbackImg;
+    const reel = it.isReel || isReelUrl(link);
+    const label = reel ? (lang==='ar' ? 'مشاهدة الريل' : 'Watch Reel')
+                       : (lang==='ar' ? 'فتح المنشور' : 'View post');
+    const esc = s => String(s).replace(/"/g,'&quot;');
+    return `
+      <a class="ig-card" href="${esc(link)}" target="_blank" rel="noopener" aria-label="${label}">
+        <img src="${esc(img)}" alt="${label}" loading="lazy"
+             onerror="this.onerror=null;this.src='${esc(fallbackImg)}'"/>
+        <span class="ig-logo"><i class="fa-brands fa-instagram"></i></span>
+        ${reel ? '<span class="ig-play"><i class="fa-solid fa-play"></i></span>' : ''}
+        <span class="ig-meta"><i class="fa-brands fa-instagram"></i>${label}</span>
+      </a>`;
   };
+
+  const draw = (items)=>{
+    const saved = (items && items.length) ? items.filter(it=>it && (it.img || it.link)) : [];
+    const list = (saved.length ? saved : FALLBACK).slice(0,6);
+    grid.innerHTML = list.map(card).join('');
+  };
+
   draw(window.__IG_POSTS);
+
   if(window.FB && !window.__igBound){
     window.__igBound = true;
     const { db, ref, onValue } = window.FB;
