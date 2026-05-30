@@ -343,13 +343,13 @@ html[dir="rtl"] .review p{font-family:var(--arabic);font-style:normal}
 .review-author span{font-size:12px;color:var(--muted)}
 
 /* ===== Instagram ===== */
-.ig{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
-.ig a{aspect-ratio:1;overflow:hidden;border-radius:8px;position:relative}
-.ig img{width:100%;height:100%;object-fit:cover;transition:.5s var(--ease)}
-.ig a::after{content:"\f16d";font-family:"Font Awesome 6 Brands";position:absolute;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.5);color:#fff;opacity:0;transition:.3s;font-size:24px}
-.ig a:hover::after{opacity:1}
-.ig a:hover img{transform:scale(1.1)}
-@media(max-width:760px){.ig{grid-template-columns:repeat(3,1fr)}}
+.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;align-items:start}
+.ig .instagram-media{margin:0 !important;min-width:0 !important;width:100% !important;border-radius:12px !important;box-shadow:0 4px 18px rgba(0,0,0,.06) !important}
+.ig-cta{text-align:center;margin-top:28px}
+.ig-cta a{display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-weight:500;transition:.3s}
+.ig-cta a:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+@media(max-width:900px){.ig{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.ig{grid-template-columns:1fr}}
 
 /* ===== Newsletter ===== */
 .news{background:linear-gradient(135deg,var(--accent),#2a2a30);color:var(--bg);text-align:center;padding:90px 24px;border-radius:var(--radius-lg);margin:60px auto;max-width:calc(var(--container) - 48px)}
@@ -1201,6 +1201,12 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
       <h2 data-i18n="ig.title">Style diary on Instagram</h2>
     </div>
     <div class="ig reveal" id="igGrid"></div>
+    <div class="ig-cta reveal">
+      <a href="https://www.instagram.com/asmaa_elmeslmany_designer_" target="_blank" rel="noopener">
+        <i class="fa-brands fa-instagram"></i>
+        <span data-i18n="ig.follow">Follow on Instagram</span>
+      </a>
+    </div>
   </div>
 </section>
 
@@ -1521,7 +1527,7 @@ const I18N = {
     "new.eye":"Just landed","new.title":"New Arrivals","new.sub":"Fresh from the atelier — limited quantities, never restocked.",
     "ai.eye":"AI Stylist","ai.title":"Let our AI curate your look","ai.sub":"Tell us your mood — we'll style your wardrobe in seconds.","ai.cta":"Generate my look",
     "rev.eye":"Client diary","rev.title":"Words from our clients",
-    "ig.title":"Style diary on Instagram",
+    "ig.title":"Style diary on Instagram","ig.follow":"Follow on Instagram",
     "blog.eye":"The Journal","blog.title":"Fashion notes & inspiration","blog.sub":"Stories from the atelier, seasonal looks, and styling notes from our team.",
     "about.eye":"Our story","about.title":"A house built on quiet luxury.",
     "about.p1":"Founded in 2014 by Asmaa Elmeslamany, the house began as a private atelier dressing brides and women of presence across the Gulf.",
@@ -1565,7 +1571,7 @@ const I18N = {
     "new.eye":"وصل توّاً","new.title":"الوافد الجديد","new.sub":"طازج من الأتيليه — كميات محدودة لا تُعاد.",
     "ai.eye":"مصممة الذكاء","ai.title":"دعي الذكاء الاصطناعي ينسق إطلالتكِ","ai.sub":"أخبرينا عن مزاجكِ — وسننسق خزانتكِ في ثوانٍ.","ai.cta":"نسّقي إطلالتي",
     "rev.eye":"مذكرات العميلات","rev.title":"كلمات من عميلاتنا",
-    "ig.title":"يوميات الستايل على إنستغرام",
+    "ig.title":"يوميات الستايل على إنستغرام","ig.follow":"تابعينا على إنستغرام",
     "blog.eye":"المجلة","blog.title":"ملاحظات وإلهام من عالم الأزياء","blog.sub":"حكايات من الأتيليه، إطلالات الموسم، ونصائح تنسيق من فريقنا.",
     "about.eye":"قصتنا","about.title":"دار قائمة على الفخامة الهادئة.",
     "about.p1":"تأسست عام 2014 على يد أسماء المسلماني، وبدأت أتيليه خاصاً يكسو العرائس وسيدات الحضور في الخليج.",
@@ -1823,19 +1829,40 @@ function renderReviews(){
   }
 }
 
+function loadIGEmbedScript(){
+  if(window.__igScriptLoaded) return;
+  window.__igScriptLoaded = true;
+  const s = document.createElement('script');
+  s.async = true; s.src = 'https://www.instagram.com/embed.js';
+  document.body.appendChild(s);
+}
+function processIGEmbeds(){
+  if(window.instgrm && window.instgrm.Embeds){ window.instgrm.Embeds.process(); }
+  else { setTimeout(processIGEmbeds, 400); }
+}
 function renderIG(){
   const profileUrl = 'https://www.instagram.com/asmaa_elmeslmany_designer_?igsh=MXZ3dXgzMzFqeTBhNQ==';
   const grid = $('#igGrid'); if(!grid) return;
+  const DEFAULT_IG_POSTS = [
+    { link: 'https://www.instagram.com/reel/DYshUSxoVMg/' }
+  ];
   const draw = (items)=>{
-    if(!items || items.length===0){
-      grid.innerHTML = IG_IMGS.map(i=>`<a href="${profileUrl}" target="_blank" rel="noopener" aria-label="Instagram post"><img src="${IMG(i,400)}" alt="" loading="lazy"/></a>`).join('');
+    const saved = (items && items.length) ? items.filter(it=>it && it.link) : [];
+    const list = (saved.length ? saved : DEFAULT_IG_POSTS).slice(0,6);
+    if(!list.length){
+      grid.innerHTML = IG_IMGS.slice(0,6).map(i=>`
+        <a href="${profileUrl}" target="_blank" rel="noopener" aria-label="Instagram"
+           style="display:block;aspect-ratio:1;overflow:hidden;border-radius:12px;position:relative">
+          <img src="${IMG(i,600)}" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover"/>
+        </a>`).join('');
       return;
     }
-    grid.innerHTML = items.map(it=>{
-      const link = it.link || profileUrl;
-      const img = it.img || '';
-      return `<a href="${link}" target="_blank" rel="noopener" aria-label="Instagram post"><img src="${img}" alt="" loading="lazy"/></a>`;
-    }).join('');
+    grid.innerHTML = list.map(it=>`
+      <blockquote class="instagram-media" data-instgrm-permalink="${it.link}" data-instgrm-version="14"
+        style="background:#FFF;border:0;margin:0;padding:0;width:100%"></blockquote>
+    `).join('');
+    loadIGEmbedScript();
+    processIGEmbeds();
   };
   draw(window.__IG_POSTS);
   if(window.FB && !window.__igBound){
