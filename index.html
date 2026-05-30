@@ -1115,46 +1115,6 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
   </div>
 </section>
 
-<!-- ============ AI RECOMMEND ============ -->
-<section>
-  <div class="container">
-    <div class="ai reveal">
-      <span class="eyebrow"><i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="ai.eye">AI Stylist</span></span>
-      <h2 style="font-size:clamp(28px,4vw,44px);margin:14px 0 8px" data-i18n="ai.title">Let our AI curate your look</h2>
-      <p style="color:var(--text-2);max-width:520px;margin:0 auto" data-i18n="ai.sub">Tell us your mood — we'll style your wardrobe in seconds.</p>
-      <div class="ai-chips">
-        <button type="button" class="chip ai-chip" aria-pressed="false">✨ Soft evening</button>
-        <button type="button" class="chip ai-chip" aria-pressed="false">🌿 Garden brunch</button>
-        <button type="button" class="chip ai-chip" aria-pressed="false">💎 Black tie</button>
-        <button type="button" class="chip ai-chip" aria-pressed="false">☕ Modest chic</button>
-        <button type="button" class="chip ai-chip" aria-pressed="false">🌙 Ramadan elegance</button>
-      </div>
-      <button class="btn btn-gold" id="aiGenerate"><i class="fa-solid fa-sparkles"></i> <span data-i18n="ai.cta">Generate my look</span></button>
-      <div id="aiResult" style="margin-top:30px"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ============ REVIEWS ============ -->
-<section class="reviews" id="reviews">
-  <div class="container">
-    <div class="section-head reveal">
-      <span class="eyebrow" data-i18n="rev.eye">مذكرات العميلات</span>
-      <h2 data-i18n="rev.title">كلمات من عميلاتنا</h2>
-    </div>
-    <div class="review-track reveal" id="reviewTrack"></div>
-    <p id="reviewEmpty" class="review-empty reveal" style="text-align:center;color:var(--muted);margin:24px 0">كوني أول من يشارك تجربتها معنا ✨</p>
-
-    <form id="reviewForm" class="review-form reveal" style="max-width:680px;margin:32px auto 0;display:grid;gap:12px;background:var(--surface);padding:24px;border-radius:16px;border:1px solid var(--line)">
-      <h3 style="margin:0 0 4px;font-size:18px">شاركينا رأيك</h3>
-      <input id="rvName" type="text" placeholder="الاسم" required maxlength="60" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit"/>
-      <input id="rvTitle" type="text" placeholder="المدينة أو الصفة (اختياري)" maxlength="80" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit"/>
-      <textarea id="rvText" placeholder="رأيك عن تجربتك معنا..." required maxlength="500" rows="4" style="padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:transparent;color:inherit;font:inherit;resize:vertical"></textarea>
-      <button type="submit" class="btn btn-primary" style="justify-self:start">إرسال الرأي</button>
-      <small style="color:var(--muted)">يُنشر رأيك فور إرساله على متصفحك. للنشر الرسمي على الموقع للجميع، يحتاج لربط قاعدة بيانات.</small>
-    </form>
-  </div>
-</section>
 
 
 <!-- ============ INSTAGRAM ============ -->
@@ -3523,42 +3483,6 @@ $('#contactForm').addEventListener('submit', async (e)=>{
   );
   setTimeout(()=>window.open(`https://wa.me/${waNum}?text=${txt}`,'_blank','noopener'),400);
   f.reset();
-});
-
-/* AI — smart mood-based curation (matches product tags / name / category) */
-let aiActiveChip = null;
-const AI_MOOD_KEYWORDS = {
-  '✨ Soft evening':['evening','satin','silk','dress','gown','soft','rose','blush','pearl'],
-  '🌿 Garden brunch':['linen','floral','pastel','midi','brunch','garden','green','cotton'],
-  '💎 Black tie':['black','gown','sequin','formal','heel','clutch','gala','tie','luxury'],
-  '☕ Modest chic':['abaya','hijab','modest','kaftan','long','sleeve','wide','neutral'],
-  '🌙 Ramadan elegance':['ramadan','abaya','kaftan','embroidery','gold','jalabiya','modest','elegant']
-};
-$$('.ai-chip').forEach(c=>c.addEventListener('click',()=>{
-  $$('.ai-chip').forEach(x=>{x.classList.remove('active');x.setAttribute('aria-pressed','false');});
-  c.classList.add('active'); c.setAttribute('aria-pressed','true');
-  aiActiveChip = c.textContent.trim();
-}));
-$('#aiGenerate').addEventListener('click',()=>{
-  const out = $('#aiResult');
-  out.innerHTML = `<p style="color:var(--muted)">${lang==='ar'?'جاري تنسيق إطلالتكِ…':'Curating your look…'}</p>`;
-  let picks;
-  if(aiActiveChip && AI_MOOD_KEYWORDS[aiActiveChip]){
-    const kws = AI_MOOD_KEYWORDS[aiActiveChip];
-    const score = (p)=>{
-      const hay = ((p.name||'')+' '+(p.category||'')+' '+((p.tags||[]).join(' '))+' '+((p.colors||[]).join(' '))).toLowerCase();
-      return kws.reduce((s,k)=> s + (hay.includes(k)?1:0), 0);
-    };
-    const ranked = [...PRODUCTS].map(p=>({p,s:score(p)})).sort((a,b)=>b.s-a.s);
-    const matched = ranked.filter(x=>x.s>0).slice(0,3).map(x=>x.p);
-    picks = matched.length>=3 ? matched
-          : [...matched, ...[...PRODUCTS].sort(()=>Math.random()-.5).filter(p=>!matched.includes(p)).slice(0,3-matched.length)];
-  } else {
-    picks = [...PRODUCTS].sort(()=>Math.random()-.5).slice(0,3);
-  }
-  setTimeout(()=>{
-    out.innerHTML = `<p style="color:var(--text-2);margin-bottom:16px">${lang==='ar'?'إطلالة منسقة خصيصاً لكِ':'A look curated just for you'}${aiActiveChip?' · '+aiActiveChip:''}</p><div class="grid" style="grid-template-columns:repeat(3,1fr);max-width:900px;margin:0 auto">${picks.map(productCard).join('')}</div>`;
-  }, 350);
 });
 
 /* SEARCH — open shop, focus input, smooth scroll (real client-side filter already wired) */
