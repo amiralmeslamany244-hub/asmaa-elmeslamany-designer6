@@ -1332,8 +1332,8 @@ html[dir="rtl"] .atelier-list-item:hover .arr,html[dir="rtl"] .atelier-list-item
       <details class="foot foot-acc">
         <summary><h4 data-i18n="foot.help">Help</h4></summary>
         <ul>
-          <li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.shipping">Shipping & delivery</a></li><li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.returns">Return policy</a></li><li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.sizeguide">Size guide</a></li>
-          <li><a href="#" data-i18n="foot.care">Garment care</a></li><li><a href="#faq" data-i18n="foot.faq">FAQs</a></li><li><a href="#contact" data-i18n="foot.contactus">Contact us</a></li>
+          <li><a href="#" onclick="openLegal('shipping');return false" data-i18n="foot.shipping">Shipping & delivery</a></li><li><a href="#" onclick="openLegal('returns');return false" data-i18n="foot.returns">Return policy</a></li><li><a href="#" onclick="openSizeGuide();return false" data-i18n="foot.sizeguide">Size guide</a></li>
+          <li><a href="#" onclick="openLegal('privacy');return false">سياسة الخصوصية</a></li><li><a href="#" onclick="openLegal('terms');return false">شروط الاستخدام</a></li><li><a href="#faq" data-i18n="foot.faq">FAQs</a></li><li><a href="#contact" data-i18n="foot.contactus">Contact us</a></li>
         </ul>
       </details>
       <details class="foot foot-acc">
@@ -4672,6 +4672,352 @@ console.log('[Firebase] Realtime DB connected →', firebaseConfig.databaseURL);
   });
 })();
 </script>
+
+<!-- ============================================================
+     🆕 LEGAL PAGES + ADMIN NOTIFICATIONS + FAWRY (frontend-only)
+     ============================================================ -->
+<style>
+  .lgl-modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+  .lgl-modal.open{display:flex}
+  .lgl-box{background:var(--surface,#fff);color:var(--text,#141414);max-width:820px;width:100%;border-radius:16px;padding:34px 30px;font-family:inherit;direction:rtl;border:1px solid var(--line);box-shadow:0 20px 60px rgba(0,0,0,.35);position:relative}
+  .lgl-box h2{font-family:var(--serif,Georgia,serif);font-size:26px;color:var(--gold,#c9a84c);margin:0 0 8px}
+  .lgl-box .lgl-sub{color:var(--text-2,#666);font-size:13px;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:14px}
+  .lgl-box h3{font-family:var(--serif,Georgia,serif);font-size:18px;color:var(--text);margin:22px 0 8px}
+  .lgl-box p,.lgl-box li{font-size:14px;line-height:1.85;color:var(--text);margin:6px 0}
+  .lgl-box ul,.lgl-box ol{padding-inline-start:22px;margin:6px 0 12px}
+  .lgl-close{position:absolute;top:14px;left:14px;background:transparent;border:none;font-size:24px;cursor:pointer;color:var(--muted,#888);width:38px;height:38px;border-radius:50%;transition:background .2s}
+  .lgl-close:hover{background:rgba(0,0,0,.06)}
+  .lgl-box .lgl-foot{margin-top:24px;padding-top:18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+  .fawry-box{background:linear-gradient(135deg,#fff7e6,#fff);border:1px solid #f0c14b;border-radius:10px;padding:14px;margin-top:10px;direction:rtl}
+  .fawry-box .fawry-ref{font-size:22px;font-weight:700;letter-spacing:2px;color:#b8860b;text-align:center;background:#fff;padding:10px;border-radius:8px;border:1px dashed #c9a84c;margin:10px 0;font-family:monospace}
+  .fawry-box ol{font-size:13px;color:#5a4a1a;margin:8px 0;padding-inline-start:20px}
+  .fawry-box ol li{margin:4px 0}
+</style>
+
+<!-- Modals -->
+<div class="lgl-modal" id="lgl-modal">
+  <div class="lgl-box">
+    <button class="lgl-close" onclick="closeLegal()" aria-label="إغلاق">&times;</button>
+    <div id="lgl-content"></div>
+    <div class="lgl-foot">© 2026 أسماء المسلماني — جميع الحقوق محفوظة. آخر تحديث: مايو 2026.</div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ⚙️ CONFIG — يجب تعديل هذه القيم حسب حسابك
+   ============================================================ */
+window.AAM_CFG = {
+  // 📧 EmailJS — سجل مجاناً على https://www.emailjs.com/
+  emailjs: {
+    enabled: false,                    // ⚠️ غيّر إلى true بعد ملء البيانات أدناه
+    publicKey: 'YOUR_EMAILJS_PUBLIC_KEY',
+    serviceId: 'YOUR_SERVICE_ID',
+    templateId: 'YOUR_TEMPLATE_ID',
+    adminEmail: 'binko202020@gmail.com'
+  },
+  // 📱 WhatsApp المدير (رقم مصري بصيغة دولية بدون +)
+  adminWhatsApp: '201003865944',
+  // 💳 Fawry — كود التاجر (للعرض فقط بدون توقيع)
+  fawry: {
+    enabled: true,
+    merchantCode: 'YOUR_FAWRY_MERCHANT_CODE', // اطلبه من فوري بعد التعاقد
+    label: 'ادفع عبر فوري (كاش)'
+  }
+};
+
+/* ============================================================
+   📄 محتوى الصفحات القانونية (عربي قياسي مطابق للقانون المصري)
+   ============================================================ */
+const LEGAL_CONTENT = {
+  returns: {
+    title: 'سياسة الإرجاع والاستبدال',
+    sub: 'حقوقك كعميلة في إرجاع أو استبدال المنتجات المشتراة',
+    html: `
+      <h3>1. مدة الإرجاع</h3>
+      <p>يحق للعميلة إرجاع أو استبدال أي منتج خلال <b>14 يوماً</b> من تاريخ الاستلام، طبقاً للمادة 39 من قانون حماية المستهلك المصري رقم 181 لسنة 2018.</p>
+      <h3>2. شروط الإرجاع</h3>
+      <ul>
+        <li>أن يكون المنتج في حالته الأصلية، غير مستخدم، وبجميع ملصقاته وعبواته الأصلية.</li>
+        <li>إرفاق فاتورة الشراء أو رقم الطلب.</li>
+        <li>عدم وجود أي روائح (عطور، دخان) أو بقع على المنتج.</li>
+        <li>أن يكون المنتج صالحاً لإعادة البيع.</li>
+      </ul>
+      <h3>3. المنتجات غير القابلة للإرجاع</h3>
+      <ul>
+        <li>الملابس الداخلية والمشدّات لأسباب صحية.</li>
+        <li>القطع المُفصّلة حسب الطلب (Custom orders).</li>
+        <li>المنتجات المُخفّضة بنسبة 50% فأكثر (التخفيضات النهائية).</li>
+        <li>الإكسسوارات والأقراط المفتوحة من عبوتها.</li>
+      </ul>
+      <h3>4. طريقة استرداد المبلغ</h3>
+      <p>يتم رد المبلغ بنفس وسيلة الدفع المستخدمة:</p>
+      <ul>
+        <li><b>الدفع عند الاستلام:</b> رد نقدي أو تحويل بنكي خلال 7 أيام عمل.</li>
+        <li><b>فودافون كاش / محفظة:</b> رد إلى نفس المحفظة خلال 3 أيام عمل.</li>
+        <li><b>فوري / بطاقة:</b> رد إلى نفس وسيلة الدفع خلال 14 يوم عمل.</li>
+      </ul>
+      <h3>5. تكاليف الشحن للإرجاع</h3>
+      <p>في حالة وجود <b>عيب من المصنع</b> أو خطأ من جهتنا، نتحمل تكلفة الشحن بالكامل. في حالات الإرجاع لتغيير الرأي، تتحمل العميلة تكاليف شحن الإرجاع.</p>
+      <h3>6. كيفية طلب الإرجاع</h3>
+      <ol>
+        <li>تواصلي معنا عبر واتساب: <span dir="ltr"><b>+20 100 386 5944</b></span></li>
+        <li>أرسلي رقم الطلب وسبب الإرجاع.</li>
+        <li>سيتم ترتيب موعد استلام القطعة من العنوان.</li>
+        <li>بعد فحص المنتج، يتم رد المبلغ خلال المدة المذكورة أعلاه.</li>
+      </ol>
+    `
+  },
+  privacy: {
+    title: 'سياسة الخصوصية',
+    sub: 'كيف نجمع ونستخدم ونحمي بياناتك الشخصية',
+    html: `
+      <p>تلتزم دار أزياء "أسماء المسلماني" بحماية خصوصية عملائها بموجب <b>قانون حماية البيانات الشخصية المصري رقم 151 لسنة 2020</b>.</p>
+      <h3>1. البيانات التي نجمعها</h3>
+      <ul>
+        <li><b>بيانات الحساب:</b> الاسم، البريد الإلكتروني، رقم الهاتف.</li>
+        <li><b>بيانات الطلب:</b> عنوان الشحن، المحافظة، تفاصيل المنتجات المطلوبة.</li>
+        <li><b>بيانات الدفع:</b> لا نحتفظ ببيانات البطاقات؛ تتم المعالجة عبر بوابات الدفع الآمنة (فوري، فودافون كاش).</li>
+        <li><b>بيانات تقنية:</b> عنوان IP، نوع المتصفح، الصفحات المُتصفّحة (لتحسين تجربة الموقع).</li>
+      </ul>
+      <h3>2. كيف نستخدم بياناتك</h3>
+      <ul>
+        <li>معالجة وشحن طلباتك.</li>
+        <li>التواصل معك بخصوص طلباتك أو استفساراتك.</li>
+        <li>إرسال عروض ومنتجات جديدة (بموافقتك فقط).</li>
+        <li>تحسين الموقع والخدمات.</li>
+      </ul>
+      <h3>3. مشاركة البيانات مع أطراف ثالثة</h3>
+      <p>لا نبيع ولا نؤجر بياناتك لأي طرف ثالث. نشاركها فقط مع:</p>
+      <ul>
+        <li><b>شركات الشحن</b> (لتوصيل الطلب).</li>
+        <li><b>بوابات الدفع</b> (فوري، فودافون كاش) لمعالجة المدفوعات.</li>
+        <li><b>الجهات الحكومية</b> فقط عند طلب رسمي بموجب القانون.</li>
+      </ul>
+      <h3>4. الكوكيز (Cookies)</h3>
+      <p>نستخدم الكوكيز لحفظ تفضيلاتك (اللغة، السلة) وتحسين تجربتك. يمكنك تعطيلها من إعدادات المتصفح، مع العلم أن ذلك قد يؤثر على بعض وظائف الموقع.</p>
+      <h3>5. حقوقك</h3>
+      <ul>
+        <li>الاطلاع على بياناتك المحفوظة لدينا.</li>
+        <li>تصحيح أي بيانات غير دقيقة.</li>
+        <li>طلب حذف بياناتك (الحق في النسيان).</li>
+        <li>سحب موافقتك على تلقي العروض في أي وقت.</li>
+      </ul>
+      <h3>6. أمان البيانات</h3>
+      <p>نستخدم اتصالات مشفّرة (HTTPS) ونخزّن البيانات على خوادم آمنة (Firebase / Google Cloud). ومع ذلك، لا يوجد نظام إلكتروني آمن 100%؛ نحن نبذل أقصى جهد لحماية بياناتك.</p>
+      <h3>7. التواصل بخصوص الخصوصية</h3>
+      <p>لأي استفسار حول الخصوصية، تواصلي معنا: <a href="mailto:binko202020@gmail.com">binko202020@gmail.com</a></p>
+    `
+  },
+  terms: {
+    title: 'شروط الاستخدام والبيع',
+    sub: 'الشروط المنظِّمة لاستخدام الموقع والشراء منه',
+    html: `
+      <p>باستخدامك لموقع "أسماء المسلماني" أو الشراء منه، فإنك توافقين على الشروط التالية:</p>
+      <h3>1. الأهلية</h3>
+      <p>يجب أن تكوني بالغة (18 عام فأكثر) للشراء من الموقع، أو الحصول على موافقة ولي الأمر إذا كنت قاصراً.</p>
+      <h3>2. الحساب والأمان</h3>
+      <ul>
+        <li>أنتِ مسؤولة عن سرية بيانات حسابك (كلمة المرور).</li>
+        <li>تتحملين مسؤولية جميع الأنشطة التي تتم من حسابك.</li>
+        <li>يحق لنا إيقاف أي حساب يُستخدم بطريقة احتيالية أو مخالفة.</li>
+      </ul>
+      <h3>3. المنتجات والأسعار</h3>
+      <ul>
+        <li>الأسعار بالجنيه المصري (EGP) شاملة ضريبة القيمة المضافة 14%.</li>
+        <li>نحتفظ بحق تعديل الأسعار في أي وقت دون إشعار مسبق، ولكن لا يُطبَّق التعديل على الطلبات المُؤكَّدة قبله.</li>
+        <li>الألوان قد تختلف قليلاً عن الصور بسبب إعدادات الشاشة.</li>
+      </ul>
+      <h3>4. الطلبات والدفع</h3>
+      <ul>
+        <li>تأكيد الطلب يتم بعد استلام الدفع كاملاً (أو تأكيد الدفع عند الاستلام).</li>
+        <li>وسائل الدفع المتاحة: فودافون كاش، تحويل بنكي، فوري، الدفع عند الاستلام (داخل القاهرة فقط).</li>
+        <li>يحق لنا رفض أو إلغاء أي طلب لأسباب تشمل: عدم توفر المنتج، خطأ في السعر، أو شك في الاحتيال.</li>
+      </ul>
+      <h3>5. الشحن والتسليم</h3>
+      <ul>
+        <li>مدة التسليم: 2-5 أيام عمل داخل القاهرة والجيزة، 3-7 أيام لباقي المحافظات.</li>
+        <li>تكلفة الشحن تُحسب حسب المحافظة وتُعرض قبل تأكيد الطلب.</li>
+        <li>الشحن مجاني للطلبات فوق 3000 جنيه.</li>
+      </ul>
+      <h3>6. الإرجاع</h3>
+      <p>يرجى الاطلاع على <a href="#" onclick="closeLegal();openLegal('returns');return false">سياسة الإرجاع</a> الكاملة.</p>
+      <h3>7. الملكية الفكرية</h3>
+      <p>جميع الصور والتصميمات والمحتوى على الموقع ملك حصري لـ "أسماء المسلماني" ومحمية بحقوق الملكية الفكرية. يُحظر استخدامها أو نسخها دون إذن كتابي.</p>
+      <h3>8. حدود المسؤولية</h3>
+      <p>لا نتحمل المسؤولية عن أي أضرار غير مباشرة (تأخير شحن بسبب ظروف قاهرة، انقطاع الموقع، إلخ). الحد الأقصى لمسؤوليتنا هو قيمة الطلب نفسه.</p>
+      <h3>9. القانون الحاكم</h3>
+      <p>تخضع هذه الشروط للقوانين المصرية، وتختص محاكم القاهرة بالفصل في أي نزاع.</p>
+      <h3>10. التعديلات</h3>
+      <p>يحق لنا تعديل هذه الشروط في أي وقت. التعديلات تسري من تاريخ نشرها على الموقع.</p>
+    `
+  },
+  shipping: {
+    title: 'الشحن والتوصيل',
+    sub: 'تفاصيل أسعار ومواعيد الشحن لجميع محافظات مصر',
+    html: `
+      <h3>مدة التوصيل</h3>
+      <ul>
+        <li><b>القاهرة والجيزة:</b> 2-3 أيام عمل</li>
+        <li><b>الإسكندرية والدلتا:</b> 3-5 أيام عمل</li>
+        <li><b>الصعيد والمحافظات الحدودية:</b> 5-7 أيام عمل</li>
+      </ul>
+      <h3>أسعار الشحن</h3>
+      <ul>
+        <li>القاهرة الكبرى: 50 ج.م</li>
+        <li>المحافظات: 70-100 ج.م حسب المنطقة</li>
+        <li><b>شحن مجاني للطلبات فوق 3000 ج.م</b></li>
+      </ul>
+      <h3>طرق التوصيل</h3>
+      <p>نتعامل مع كبرى شركات الشحن المصرية لضمان أسرع وأأمن توصيل، مع إمكانية تتبع الطلب عبر واتساب.</p>
+      <h3>الدفع عند الاستلام</h3>
+      <p>متاح داخل القاهرة الكبرى فقط، برسوم إضافية 20 ج.م.</p>
+    `
+  }
+};
+
+window.openLegal = function(key){
+  const c = LEGAL_CONTENT[key]; if(!c) return;
+  const m = document.getElementById('lgl-modal');
+  document.getElementById('lgl-content').innerHTML =
+    `<h2>${c.title}</h2><div class="lgl-sub">${c.sub}</div>${c.html}`;
+  m.classList.add('open');
+  document.body.style.overflow='hidden';
+};
+window.closeLegal = function(){
+  document.getElementById('lgl-modal').classList.remove('open');
+  document.body.style.overflow='';
+};
+document.getElementById('lgl-modal').addEventListener('click', e=>{
+  if(e.target.id==='lgl-modal') closeLegal();
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeLegal(); });
+
+/* ============================================================
+   📧 EmailJS — تحميل ديناميكي + إرسال إشعار للمدير
+   ============================================================ */
+(function loadEmailJS(){
+  if(!window.AAM_CFG.emailjs.enabled) {
+    console.info('[AAM] EmailJS معطّل. لتفعيله: عدّل window.AAM_CFG.emailjs في index.html');
+    return;
+  }
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  s.onload = ()=>{ try{ emailjs.init({publicKey: window.AAM_CFG.emailjs.publicKey}); console.log('[AAM] EmailJS جاهز'); }catch(e){console.warn(e);} };
+  document.head.appendChild(s);
+})();
+
+window.AAM_notifyAdmin = async function(order){
+  // 1) Email عبر EmailJS
+  try {
+    if(window.AAM_CFG.emailjs.enabled && window.emailjs){
+      const itemsText = order.items.map(i=>
+        `• ${i.name} × ${i.qty}${i.color?' / '+i.color:''}${i.size?' / '+i.size:''} = ${(i.price*i.qty).toLocaleString('ar-EG')} ج.م`
+      ).join('\n');
+      await emailjs.send(
+        window.AAM_CFG.emailjs.serviceId,
+        window.AAM_CFG.emailjs.templateId,
+        {
+          to_email: window.AAM_CFG.emailjs.adminEmail,
+          order_id: order.id || 'N/A',
+          customer_name: order.shipping?.name || 'غير محدد',
+          customer_phone: order.shipping?.phone || 'غير محدد',
+          customer_address: `${order.shipping?.address||''}, ${order.shipping?.governorate||''}`,
+          items: itemsText,
+          subtotal: order.subtotal.toLocaleString('ar-EG') + ' ج.م',
+          payment: order.payment || 'غير محدد',
+          timestamp: new Date().toLocaleString('ar-EG')
+        }
+      );
+      console.log('[AAM] ✅ Email للمدير تم إرساله');
+    }
+  } catch(e){ console.error('[AAM] فشل إرسال Email:', e); }
+
+  // 2) WhatsApp تلقائي للمدير (يفتح في تاب جديد)
+  try {
+    const lines = [
+      '🛍️ *طلب جديد - أسماء المسلماني*',
+      '',
+      `📋 رقم الطلب: ${order.id || 'N/A'}`,
+      `👤 العميلة: ${order.shipping?.name || 'غير محدد'}`,
+      `📱 الهاتف: ${order.shipping?.phone || 'غير محدد'}`,
+      `📍 العنوان: ${order.shipping?.address || ''} - ${order.shipping?.governorate || ''}`,
+      '',
+      '📦 *المنتجات:*',
+      ...order.items.map(i => `• ${i.name} × ${i.qty} = ${(i.price*i.qty).toLocaleString('ar-EG')} ج.م`),
+      '',
+      `💰 *الإجمالي: ${order.subtotal.toLocaleString('ar-EG')} ج.م*`,
+      `💳 طريقة الدفع: ${order.payment || 'غير محدد'}`,
+      `🕐 ${new Date().toLocaleString('ar-EG')}`
+    ].join('\n');
+    const url = `https://wa.me/${window.AAM_CFG.adminWhatsApp}?text=${encodeURIComponent(lines)}`;
+    // فتح تلقائي في تاب جديد — يصل للمدير عبر WhatsApp Web أو الموبايل
+    window.open(url, '_blank', 'noopener');
+    console.log('[AAM] ✅ WhatsApp للمدير تم فتحه');
+  } catch(e){ console.error('[AAM] فشل WhatsApp:', e); }
+};
+
+/* ============================================================
+   💳 Fawry Plugin — عرض رقم مرجعي بدون توقيع (آمن للواجهة)
+   ============================================================
+   ⚠️ هذه الطريقة "المرجع اليدوي": يدفع العميل في أي منفذ فوري
+   باستخدام كود التاجر + رقم الطلب. المدير يؤكد الدفع يدوياً.
+   للحصول على دفع تلقائي مدمج، يلزم تفعيل Backend (Lovable Cloud).
+   ============================================================ */
+window.AAM_showFawryInfo = function(orderId, amount){
+  if(!window.AAM_CFG.fawry.enabled) return '';
+  const mc = window.AAM_CFG.fawry.merchantCode;
+  return `
+    <div class="fawry-box">
+      <b style="color:#b8860b">💳 ادفعي في أي منفذ فوري:</b>
+      <ol>
+        <li>اذهبي إلى أي ماكينة فوري / تطبيق MyFawry / محل بقالة.</li>
+        <li>اختاري "خدمات أخرى" → "كود التاجر".</li>
+        <li>أدخلي كود التاجر: <b>${mc}</b></li>
+        <li>أدخلي رقم الطلب التالي:</li>
+      </ol>
+      <div class="fawry-ref">${orderId}</div>
+      <p style="font-size:13px;color:#5a4a1a;text-align:center">المبلغ المطلوب: <b>${amount.toLocaleString('ar-EG')} ج.م</b></p>
+      <p style="font-size:12px;color:#888;text-align:center;margin-top:8px">⏱️ صالح لمدة 48 ساعة. سيتم تأكيد طلبك خلال ساعة من الدفع.</p>
+    </div>
+  `;
+};
+
+/* ============================================================
+   🔗 Hook على حدث تأكيد الطلب لإطلاق الإشعارات
+   ============================================================ */
+(function hookOrderNotifications(){
+  // نلتقط الحدث بعد ما يتم push إلى Firebase
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest && e.target.closest('#placeOrder');
+    if(!btn) return;
+    // بنتأخر شوية عشان نخلي الـ handler الأصلي يخلص flush للـ Firebase
+    setTimeout(()=>{
+      try {
+        const cart = JSON.parse(localStorage.getItem('aam_cart')||'[]');
+        const products = JSON.parse(localStorage.getItem('aam_products')||'[]');
+        const items = cart.map(it=>{
+          const p = products.find(x=>x.id===it.id)||{};
+          return {id:it.id, name:p.name||'', qty:it.qty, color:it.color, size:it.size, price:p.price||0};
+        });
+        if(!items.length) return;
+        const subtotal = items.reduce((a,b)=>a+(b.price||0)*b.qty,0);
+        const ship = {};
+        document.querySelectorAll('#checkoutBody input, #checkoutBody select, #checkoutBody textarea').forEach((el,i)=>{
+          const k = el.name||el.id||('f'+i); if(k) ship[k]=el.value;
+        });
+        const activePay = document.querySelector('#checkoutBody [data-pay].active');
+        const payment = activePay ? (activePay.getAttribute('data-pay')||activePay.textContent.trim()) : 'غير محدد';
+        const orderId = 'AAM-' + Date.now().toString(36).toUpperCase();
+        window.AAM_notifyAdmin({id:orderId, items, subtotal, shipping:ship, payment});
+      } catch(err){ console.error('[AAM] notify hook failed:', err); }
+    }, 800);
+  }, true);
+})();
+
+console.info('%c[AAM] ✅ الميزات الجديدة جاهزة:\n• صفحات السياسات (إرجاع/خصوصية/شروط/شحن)\n• إشعار WhatsApp تلقائي للمدير\n• إشعار Email عبر EmailJS (يحتاج تفعيل)\n• Fawry Plugin (مرجع يدوي)', 'color:#c9a84c;font-weight:bold');
+</script>
+
 </body>
 </html>
 
