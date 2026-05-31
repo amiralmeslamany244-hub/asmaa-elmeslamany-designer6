@@ -1611,6 +1611,20 @@ let lang  = LS.get('aam_lang','ar');
 let theme = LS.get('aam_theme','light');
 let cart  = LS.get('aam_cart',[]);
 let wish  = LS.get('aam_wish',[]);
+// Bridge for external resilience layer (Firebase cart sync)
+window.__cartBridge = {
+  get: ()=>cart,
+  replace: (arr)=>{ cart.length=0; if(Array.isArray(arr)) arr.forEach(x=>cart.push(x)); },
+  merge: (remote)=>{
+    if(!Array.isArray(remote)) return;
+    remote.forEach(r=>{
+      if(!r||!r.key) return;
+      const ex = cart.find(c=>c.key===r.key);
+      if(ex) ex.qty = Math.max(ex.qty, r.qty||1);
+      else cart.push(r);
+    });
+  }
+};
 let currentFilter = 'all';
 let currentSort = 'featured';
 let currentSearch = '';
@@ -2466,13 +2480,15 @@ function openCheckout(){
         <h3 style="margin-top:24px;display:flex;align-items:center;justify-content:space-between">${lang==='ar'?'شركة الشحن':'Shipping company'} <button type="button" class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="openSizeGuide()"><i class="fa-solid fa-ruler-combined"></i> ${lang==='ar'?'دليل المقاسات':'Size guide'}</button></h3>
         <div id="shipCompaniesBox" class="pay-methods"></div>
         <h3 style="margin-top:24px">${lang==='ar'?'طريقة الدفع':'Payment method'}</h3>
-        <div class="pay-methods">
-          <div class="pm active" data-pay="vodafone"><i class="fa-solid fa-mobile-screen-button"></i>${lang==='ar'?'فودافون كاش':'Vodafone Cash'}</div>
-          <div class="pm" data-pay="bank"><i class="fa-solid fa-building-columns"></i>${lang==='ar'?'حساب بنكي':'Bank account'}</div>
-        </div>
-        <div id="payDetails" style="margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.9">
-          ${lang==='ar'?(lang==='ar'?'<b>تحويل فودافون كاش إلى:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">برجاء إرسال صورة إيصال التحويل على واتساب بعد تأكيد الطلب.</span>':'<b>Vodafone Cash transfer to:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">Please send the transfer receipt via WhatsApp after placing your order.</span>'):'<b>Vodafone Cash transfer to:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">Please send the transfer receipt via WhatsApp after placing your order.</span>'}
-        </div>
+         <div class="pay-methods">
+           <div class="pm active" data-pay="vodafone"><i class="fa-solid fa-mobile-screen-button"></i>${lang==='ar'?'فودافون كاش':'Vodafone Cash'}</div>
+           <div class="pm" data-pay="fawry"><i class="fa-solid fa-store"></i>${lang==='ar'?'فوري':'Fawry'}</div>
+           <div class="pm" data-pay="bank"><i class="fa-solid fa-building-columns"></i>${lang==='ar'?'حساب بنكي':'Bank account'}</div>
+           <div class="pm" data-pay="cod"><i class="fa-solid fa-money-bill-wave"></i>${lang==='ar'?'الدفع عند الاستلام':'Cash on delivery'}</div>
+         </div>
+         <div id="payDetails" style="margin-top:12px;padding:14px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:13px;line-height:1.9">
+           <b>تحويل فودافون كاش إلى:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">برجاء إرسال صورة إيصال التحويل على واتساب بعد تأكيد الطلب.</span>
+         </div>
       </div>
       <div class="summary">
         <h3>${lang==='ar'?'ملخص الطلب':'Order summary'}</h3>
@@ -2509,9 +2525,28 @@ function openCheckout(){
       selectedPay = p.dataset.pay;
       const det = document.getElementById('payDetails');
       if(det){
-        det.innerHTML = selectedPay==='vodafone'
-          ? '<b>تحويل فودافون كاش إلى:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">برجاء إرسال صورة إيصال التحويل على واتساب بعد تأكيد الطلب.</span>'
-          : (lang==='ar'?'<b>التحويل البنكي:</b><br>البنك الأهلي المصري<br>اسم الحساب: أسماء المسلماني<br>رقم الحساب: <span dir="ltr">1234567890123456</span><br>IBAN: <span dir="ltr">EG380003000000000001234567890</span>':'<b>Bank transfer:</b><br>National Bank of Egypt<br>Account name: Asmaa Elmeslamany<br>Account number: <span dir="ltr">1234567890123456</span><br>IBAN: <span dir="ltr">EG380003000000000001234567890</span>');
+        if(selectedPay==='vodafone'){
+          det.innerHTML = '<b>تحويل فودافون كاش إلى:</b> <span dir="ltr">01003865944</span><br><span style="color:var(--text-2)">برجاء إرسال صورة إيصال التحويل على واتساب بعد تأكيد الطلب.</span>';
+        } else if(selectedPay==='bank'){
+          det.innerHTML = '<b>التحويل البنكي:</b><br>البنك الأهلي المصري<br>اسم الحساب: أسماء المسلماني<br>رقم الحساب: <span dir="ltr">1234567890123456</span><br>IBAN: <span dir="ltr">EG380003000000000001234567890</span>';
+        } else if(selectedPay==='fawry'){
+          const mc = (window.AAM_CFG && window.AAM_CFG.fawry && window.AAM_CFG.fawry.merchantCode) || 'YOUR_FAWRY_MERCHANT_CODE';
+          det.innerHTML = `<b><i class="fa-solid fa-store" style="color:#c9a84c"></i> الدفع عبر فوري</b><br>
+            <span style="color:var(--text-2)">سيتم إنشاء رقم مرجعي بعد تأكيد الطلب. توجهي لأقرب ماكينة فوري / تطبيق MyFawry / محل بقالة وادفعي باستخدام:</span>
+            <ul style="margin:8px 0;padding-inline-start:20px">
+              <li>كود التاجر: <b dir="ltr">${mc}</b></li>
+              <li>رقم الطلب: <i>(سيظهر بعد التأكيد)</i></li>
+            </ul>
+            <span style="font-size:12px;color:var(--muted)">⏱️ صالح 48 ساعة — سيتم تأكيد الطلب خلال ساعة من الدفع.</span>`;
+        } else if(selectedPay==='cod'){
+          det.innerHTML = `<b><i class="fa-solid fa-money-bill-wave" style="color:#2d8a5f"></i> الدفع عند الاستلام</b><br>
+            <span style="color:var(--text-2)">ادفعي نقداً للمندوب عند استلام الطلب.</span>
+            <ul style="margin:8px 0;padding-inline-start:20px;font-size:13px">
+              <li>متاح داخل القاهرة الكبرى فقط.</li>
+              <li>يضاف رسم إضافي <b>30 ج.م</b> لخدمة الدفع عند الاستلام.</li>
+              <li>يجب تجهيز المبلغ كاملاً عند الاستلام.</li>
+            </ul>`;
+        }
       }
     }));
     $('#coupBtn').addEventListener('click',()=>{
@@ -3035,7 +3070,7 @@ document.addEventListener('submit', function(e){
 
 /* ---- Instagram Posts admin ---- */
 window.adminInstaAdd = function(){
-  if(!window.FB) return alert('Firebase غير جاهز');
+  if(!window.FB) return (window.FBNotReady ? window.FBNotReady() : alert('Firebase غير جاهز'));
   const img = (document.getElementById('igImgUrl').value||'').trim();
   const link = (document.getElementById('igPostLink').value||'').trim();
   if(!img) return alert('أدخل رابط الصورة');
@@ -3378,7 +3413,7 @@ window.adminMagAIGenerate = async function(){
 };
 
 window.adminMagSave = async function(){
-  if(!window.FB){ alert('Firebase غير جاهز'); return; }
+  if(!window.FB){ (window.FBNotReady ? window.FBNotReady() : alert('Firebase غير جاهز')); return; }
   const preview = document.getElementById('magImgPreview');
   const img = preview?.dataset?.url;
   const editKey = document.getElementById('magEditKey').value;
@@ -5017,6 +5052,186 @@ window.AAM_showFawryInfo = function(orderId, amount){
 
 console.info('%c[AAM] ✅ الميزات الجديدة جاهزة:\n• صفحات السياسات (إرجاع/خصوصية/شروط/شحن)\n• إشعار WhatsApp تلقائي للمدير\n• إشعار Email عبر EmailJS (يحتاج تفعيل)\n• Fawry Plugin (مرجع يدوي)', 'color:#c9a84c;font-weight:bold');
 </script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     🛡️  RESILIENCE LAYER — Firebase fallback + Cart cloud sync
+     ════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+  const T = (msg)=>{ try{ (window.toast||console.log)(msg); }catch(_){ console.log(msg); } };
+  const LOG = (...a)=>console.info('%c[RESILIENCE]','color:#0d7a5f;font-weight:bold',...a);
+
+  /* ───────── 1. Online/Offline detection ───────── */
+  let wasOffline = !navigator.onLine;
+  function showOfflineBanner(show){
+    let el = document.getElementById('aam-offline-banner');
+    if(show){
+      if(!el){
+        el = document.createElement('div');
+        el.id = 'aam-offline-banner';
+        el.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#c44,#e85d3a);color:#fff;text-align:center;padding:8px 12px;font:600 13px system-ui;direction:rtl;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+        el.innerHTML = '<i class="fa-solid fa-wifi" style="margin-inline-end:8px;opacity:.7;text-decoration:line-through"></i>لا يوجد اتصال بالإنترنت — يتم حفظ تغييراتك محلياً وستُزامن عند عودة الاتصال';
+        document.body.appendChild(el);
+      }
+    } else if(el){ el.remove(); }
+  }
+  window.addEventListener('online', ()=>{
+    showOfflineBanner(false);
+    if(wasOffline){ T('✅ عاد الاتصال — جارٍ مزامنة البيانات'); flushQueue(); }
+    wasOffline = false;
+  });
+  window.addEventListener('offline', ()=>{
+    wasOffline = true;
+    showOfflineBanner(true);
+    T('⚠️ انقطع الاتصال — سيتم الحفظ محلياً');
+  });
+  if(wasOffline) showOfflineBanner(true);
+
+  /* ───────── 2. FBWait — promise that resolves when window.FB is ready ───────── */
+  window.FBWait = function(timeoutMs){
+    timeoutMs = timeoutMs || 8000;
+    return new Promise((resolve, reject)=>{
+      if(window.FB && window.FB.db) return resolve(window.FB);
+      const t0 = Date.now();
+      const iv = setInterval(()=>{
+        if(window.FB && window.FB.db){ clearInterval(iv); resolve(window.FB); }
+        else if(Date.now()-t0 > timeoutMs){ clearInterval(iv); reject(new Error('Firebase timeout')); }
+      }, 150);
+    });
+  };
+
+  /* ───────── 3. Friendly "not ready" handler (replaces alerts) ───────── */
+  let notReadyToastShown = false;
+  window.FBNotReady = function(){
+    if(notReadyToastShown) return;
+    notReadyToastShown = true;
+    setTimeout(()=>{ notReadyToastShown = false; }, 4000);
+    if(!navigator.onLine){
+      T('⚠️ لا يوجد اتصال بالإنترنت — حاولي مرة أخرى لاحقاً');
+    } else {
+      T('⏳ جارٍ الاتصال بالخادم… حاولي بعد لحظات');
+      window.FBWait(5000).then(()=>T('✅ تم الاتصال — يمكنك المحاولة الآن')).catch(()=>T('❌ تعذّر الاتصال بالخادم — تحققي من الإنترنت'));
+    }
+  };
+
+  /* ───────── 4. Offline write queue (persisted in localStorage) ───────── */
+  const QKEY = 'aam_fb_queue';
+  const loadQ = ()=>{ try{ return JSON.parse(localStorage.getItem(QKEY)||'[]'); }catch(_){ return []; } };
+  const saveQ = (q)=>{ try{ localStorage.setItem(QKEY, JSON.stringify(q.slice(-100))); }catch(_){} };
+  function enqueue(op){ const q = loadQ(); q.push({...op, ts:Date.now()}); saveQ(q); }
+  async function flushQueue(){
+    const q = loadQ();
+    if(!q.length) return;
+    try { await window.FBWait(5000); } catch(_){ return; }
+    const { db, ref, set } = window.FB;
+    const remaining = [];
+    for(const op of q){
+      try {
+        if(op.type==='set') await set(ref(db, op.path), op.value);
+      } catch(e){ remaining.push(op); }
+    }
+    saveQ(remaining);
+    if(q.length && !remaining.length) LOG('✅ تم تفريغ قائمة الانتظار:', q.length, 'عملية');
+  }
+  window.addEventListener('online', flushQueue);
+  setTimeout(flushQueue, 3000);
+
+  /* ───────── 5. FBSafe — wrapper for any Firebase op with retry+queue ───────── */
+  window.FBSafe = async function(label, fn, opts){
+    opts = opts || {};
+    try {
+      await window.FBWait(opts.waitMs || 6000);
+      return await fn(window.FB);
+    } catch(e){
+      console.warn('[FBSafe]', label, 'فشل:', e.message);
+      if(opts.queue && opts.queue.path){
+        enqueue({ type:'set', path: opts.queue.path, value: opts.queue.value });
+        T('⚠️ تعذّر الاتصال — تم حفظ "'+label+'" محلياً، سيتم المحاولة لاحقاً');
+      } else if(!opts.silent){
+        T('⚠️ فشل: '+label+' — سيتم إعادة المحاولة');
+      }
+      return null;
+    }
+  };
+
+  /* ───────── 6. CART CLOUD SYNC — يحفظ السلة لكل مستخدم على Firebase ───────── */
+  let currentUid = null;
+  let remoteCartLoaded = false;
+  let saveDebounce = null;
+
+  function pushCartToFB(){
+    if(!currentUid) return; // Guest = localStorage only
+    const items = (window.__cartBridge && window.__cartBridge.get()) || [];
+    const path = 'carts/'+currentUid;
+    const value = { items, updatedAt: Date.now() };
+    clearTimeout(saveDebounce);
+    saveDebounce = setTimeout(()=>{
+      window.FBSafe('حفظ السلة', async (FB)=>{
+        await FB.set(FB.ref(FB.db, path), value);
+      }, { silent:true, queue:{ path, value } });
+    }, 600);
+  }
+
+  // Wrap saveCart to also sync to Firebase
+  const _origSaveCart = window.saveCart;
+  if(typeof _origSaveCart === 'function'){
+    window.saveCart = function(){
+      const r = _origSaveCart.apply(this, arguments);
+      pushCartToFB();
+      return r;
+    };
+    LOG('saveCart wrapped — السلة ستُزامن مع Firebase تلقائياً');
+  } else {
+    LOG('⚠️ saveCart not found at wrap time — sync disabled');
+  }
+
+  // Load remote cart when user logs in (merge with local)
+  function loadRemoteCart(uid){
+    if(!uid || remoteCartLoaded) return;
+    window.FBSafe('تحميل السلة', async (FB)=>{
+      const snap = await FB.get(FB.ref(FB.db, 'carts/'+uid));
+      const data = snap && snap.val ? snap.val() : null;
+      if(data && Array.isArray(data.items) && data.items.length){
+        if(window.__cartBridge){
+          window.__cartBridge.merge(data.items);
+          try { localStorage.setItem('aam_cart', JSON.stringify(window.__cartBridge.get())); } catch(_){}
+          try { window.updateBadges && window.updateBadges(); } catch(_){}
+          try { window.renderCart && window.renderCart(); } catch(_){}
+          T('🛒 تم استرجاع سلتك المحفوظة');
+        }
+      }
+      remoteCartLoaded = true;
+      // After merge, push back the merged state so both devices converge
+      pushCartToFB();
+    }, { silent:true });
+  }
+
+  // Hook auth state
+  function hookAuth(){
+    if(!window.FBAuth || !window.FBAuth.onAuthStateChanged){
+      return setTimeout(hookAuth, 500);
+    }
+    window.FBAuth.onAuthStateChanged(window.FBAuth.auth, (user)=>{
+      const newUid = user ? user.uid : null;
+      if(newUid !== currentUid){
+        currentUid = newUid;
+        remoteCartLoaded = false;
+        if(newUid){
+          LOG('user logged in:', newUid.slice(0,8), '— loading cloud cart');
+          loadRemoteCart(newUid);
+        } else {
+          LOG('user logged out — cart kept locally only');
+        }
+      }
+    });
+  }
+  hookAuth();
+
+  LOG('✅ Resilience layer جاهز:\n  • كشف الانترنت (online/offline)\n  • قائمة انتظار للعمليات الفاشلة\n  • مزامنة السلة مع Firebase لكل مستخدم\n  • استبدال alerts بإشعارات لطيفة');
+})();
+</script>
+
 
 </body>
 </html>
